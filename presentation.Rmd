@@ -1,0 +1,195 @@
+---
+title: "Presentation"
+author: "KawtharAbdulkabir"
+date: "11/20/2018"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(grid)
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+library(scales)
+statejobdata <- read.csv(file="/Users/Kawthar/Documents/Unemployment_edited.csv", header=TRUE, sep=",")
+```
+
+
+
+
+
+#1
+```{r}
+#function to make all column names lowercase
+colnames(statejobdata) <- colnames(statejobdata) %>% str_to_lower()
+
+statejobdata <- statejobdata %>%  mutate(region = ifelse(state %in% c("AZ","CO","ID","NM","MT","UT","NV","WY","AK","HI","OR","WA","CA"), "West", ifelse(state %in% c("IN","IL","MI","OH","WI","IA","KS","MN","MO","NE","ND","SD"), "Midwest", ifelse(state %in% c("DE","DC","FL","GA","MD","NC","AL","KT","MS","TN","AR","LA","OK","TX","SC","VA","WV"), "South", "Northeast"))))
+
+meanstatejobdata <- statejobdata %>%  
+        group_by(region) %>% 
+        summarise(
+          "2007" = mean(unemployment_rate_2007,na.rm = T),
+          "2008" = mean(unemployment_rate_2008,na.rm = T),
+          "2009" = mean(unemployment_rate_2009,na.rm = T),
+          "2010" = mean(unemployment_rate_2010,na.rm = T),
+          "2011" = mean(unemployment_rate_2011,na.rm = T),
+          "2012" = mean(unemployment_rate_2012,na.rm = T),
+          "2013" = mean(unemployment_rate_2013,na.rm = T),
+          "2014" = mean(unemployment_rate_2014,na.rm = T),
+          "2015" = mean(unemployment_rate_2015,na.rm = T),
+          "2016" = mean(unemployment_rate_2016,na.rm = T),
+          "2017" = mean(unemployment_rate_2017,na.rm = T)
+        ) %>% select(region, everything())
+
+
+#changed the above table to wide
+mean_region <- meanstatejobdata  %>% gather(`2007`,`2008`,`2009`,`2010`,`2011`,`2012`,`2013`,`2014`,`2015`,`2016`,`2017`, key = "year", value = "Mean_Unemployment")
+
+#next changed the variable year to integer
+mean_region$year <- as.numeric(mean_region$year)
+
+ggplot(mean_region, aes(x=year, y= Mean_Unemployment))+geom_line(aes(col=region)) + labs("\nYear", y= "Mean Unemployment Rate by Region\n", title = "Unemployment Rate by Region of the US: 2007-2017") +  scale_x_continuous(labels = function (x) floor(x)) 
+
+```
+
+Overall max: 9.97%,  West
+
+Overall min: 4.01% , Midwest
+
+
+
+#2
+```{r}
+
+mean_by_midwest <- statejobdata %>% filter(region == "Midwest") %>%
+        group_by(state) %>% 
+        summarise(
+          "2007" = mean(unemployment_rate_2007,na.rm = T),
+          "2008" = mean(unemployment_rate_2008,na.rm = T),
+          "2009" = mean(unemployment_rate_2009,na.rm = T),
+          "2010" = mean(unemployment_rate_2010,na.rm = T),
+          "2011" = mean(unemployment_rate_2011,na.rm = T),
+          "2012" = mean(unemployment_rate_2012,na.rm = T),
+          "2013" = mean(unemployment_rate_2013,na.rm = T),
+          "2014" = mean(unemployment_rate_2014,na.rm = T),
+          "2015" = mean(unemployment_rate_2015,na.rm = T),
+          "2016" = mean(unemployment_rate_2016,na.rm = T),
+          "2017" = mean(unemployment_rate_2017,na.rm = T)
+        ) %>% mutate(region = ifelse(state %in% c("AZ","CO","ID","NM","MT","UT","NV","WY","AK","HI","OR","WA","CA"), "West", ifelse(state %in% c("IN","IL","MI","OH","WI","IA","KS","MN","MO","NE","ND","SD"), "Midwest", ifelse(state %in% c("DE","DC","FL","GA","MD","NC","AL","KT","MS","TN","AR","LA","OK","TX","SC","VA","WV"), "South", "Northeast")))) %>% select(everything())
+
+
+mbm <- mean_by_midwest  %>% gather(`2007`,`2008`,`2009`,`2010`,`2011`,`2012`,`2013`,`2014`,`2015`,`2016`,`2017`, key = "year", value = "Mean_Unemployment")
+
+mbm$year <- as.integer(mbm$year)
+
+ggplot(mbm, aes(x = state, y = Mean_Unemployment)) + geom_boxplot() + labs("\nYear", y= "Distribution of Unemployment Rate by State\n", title = "Unemployment Rate by State in the Midwest:07-2017")
+
+```
+
+Overall max: 14.12%, Michigan
+
+Overall min: 2.87% , Nebraska
+
+
+
+```{r}
+mean_by_south <- statejobdata %>% filter(region == "South") %>%
+        group_by(state) %>% 
+        summarise(
+          "2007" = mean(unemployment_rate_2007,na.rm = T),
+          "2008" = mean(unemployment_rate_2008,na.rm = T),
+          "2009" = mean(unemployment_rate_2009,na.rm = T),
+          "2010" = mean(unemployment_rate_2010,na.rm = T),
+          "2011" = mean(unemployment_rate_2011,na.rm = T),
+          "2012" = mean(unemployment_rate_2012,na.rm = T),
+          "2013" = mean(unemployment_rate_2013,na.rm = T),
+          "2014" = mean(unemployment_rate_2014,na.rm = T),
+          "2015" = mean(unemployment_rate_2015,na.rm = T),
+          "2016" = mean(unemployment_rate_2016,na.rm = T),
+          "2017" = mean(unemployment_rate_2017,na.rm = T)
+        ) %>% mutate(region = ifelse(state %in% c("AZ","CO","ID","NM","MT","UT","NV","WY","AK","HI","OR","WA","CA"), "West", ifelse(state %in% c("IN","IL","MI","OH","WI","IA","KS","MN","MO","NE","ND","SD"), "Midwest", ifelse(state %in% c("DE","DC","FL","GA","MD","NC","AL","KT","MS","TN","AR","LA","OK","TX","SC","VA","WV"), "South", "Northeast")))) %>% select(everything())
+
+
+mbs <- mean_by_south  %>% gather(`2007`,`2008`,`2009`,`2010`,`2011`,`2012`,`2013`,`2014`,`2015`,`2016`,`2017`, key = "year", value = "Mean_Unemployment")
+
+mbs$year <- as.integer(mbs$year)
+
+ggplot(mbs, aes(x = state, y = Mean_Unemployment)) + geom_boxplot()  + labs("\nYear", y= "Distribution of Unemployment Rate by State\n", title = "Unemployment Rate by State in the South:07-2017")
+```
+
+Overall max: 13.27%, Mississippi
+
+Overall min: 3.43% , Texas
+
+
+```{r}
+mean_by_north <- statejobdata %>% filter(region == "Northeast") %>%
+        group_by(state) %>% 
+        summarise(
+          "2007" = mean(unemployment_rate_2007,na.rm = T),
+          "2008" = mean(unemployment_rate_2008,na.rm = T),
+          "2009" = mean(unemployment_rate_2009,na.rm = T),
+          "2010" = mean(unemployment_rate_2010,na.rm = T),
+          "2011" = mean(unemployment_rate_2011,na.rm = T),
+          "2012" = mean(unemployment_rate_2012,na.rm = T),
+          "2013" = mean(unemployment_rate_2013,na.rm = T),
+          "2014" = mean(unemployment_rate_2014,na.rm = T),
+          "2015" = mean(unemployment_rate_2015,na.rm = T),
+          "2016" = mean(unemployment_rate_2016,na.rm = T),
+          "2017" = mean(unemployment_rate_2017,na.rm = T)
+        ) %>% mutate(region = ifelse(state %in% c("AZ","CO","ID","NM","MT","UT","NV","WY","AK","HI","OR","WA","CA"), "West", ifelse(state %in% c("IN","IL","MI","OH","WI","IA","KS","MN","MO","NE","ND","SD"), "Midwest", ifelse(state %in% c("DE","DC","FL","GA","MD","NC","AL","KT","MS","TN","AR","LA","OK","TX","SC","VA","WV"), "South", "Northeast")))) %>% select(everything())
+
+
+mbn <- mean_by_north  %>% gather(`2007`,`2008`,`2009`,`2010`,`2011`,`2012`,`2013`,`2014`,`2015`,`2016`,`2017`, key = "year", value = "Mean_Unemployment")
+
+mbn$year <- as.integer(mbn$year)
+
+ggplot(mbn, aes(x = state, y = Mean_Unemployment)) + geom_boxplot() + labs("\nYear", y= "Distribution of Unemployment Rate by State\n", title = "Unemployment Rate by State in the Northeast:07-2017")
+```
+
+Overall max: 11.45%, Kentucky
+
+Overall min: 2.61% , New Hampshire
+
+
+
+```{r}
+mean_by_west <- statejobdata %>% filter(region == "West") %>%
+        group_by(state) %>% 
+        summarise(
+          "2007" = mean(unemployment_rate_2007,na.rm = T),
+          "2008" = mean(unemployment_rate_2008,na.rm = T),
+          "2009" = mean(unemployment_rate_2009,na.rm = T),
+          "2010" = mean(unemployment_rate_2010,na.rm = T),
+          "2011" = mean(unemployment_rate_2011,na.rm = T),
+          "2012" = mean(unemployment_rate_2012,na.rm = T),
+          "2013" = mean(unemployment_rate_2013,na.rm = T),
+          "2014" = mean(unemployment_rate_2014,na.rm = T),
+          "2015" = mean(unemployment_rate_2015,na.rm = T),
+          "2016" = mean(unemployment_rate_2016,na.rm = T),
+          "2017" = mean(unemployment_rate_2017,na.rm = T)
+        ) %>% mutate(region = ifelse(state %in% c("AZ","CO","ID","NM","MT","UT","NV","WY","AK","HI","OR","WA","CA"), "West", ifelse(state %in% c("IN","IL","MI","OH","WI","IA","KS","MN","MO","NE","ND","SD"), "Midwest", ifelse(state %in% c("DE","DC","FL","GA","MD","NC","AL","KT","MS","TN","AR","LA","OK","TX","SC","VA","WV"), "South", "Northeast")))) %>% select(everything())
+
+
+mbw <- mean_by_west  %>% gather(`2007`,`2008`,`2009`,`2010`,`2011`,`2012`,`2013`,`2014`,`2015`,`2016`,`2017`, key = "year", value = "Mean_Unemployment")
+
+mbw$year <- as.integer(mbw$year)
+
+
+ggplot(mbw, aes(x = state, y = Mean_Unemployment)) + geom_boxplot() + labs("\nYear", y= "Distribution of Unemployment Rate by State\n", title = "Unemployment Rate by State in the West:07-2017")
+```
+
+Overall max: 13.81% california
+
+Alaska has the overall highest median
+
+Overall min: 2.48% , wyoming
+
+
+
+

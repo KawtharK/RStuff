@@ -1,0 +1,176 @@
+---
+title: "Confd_Sample"
+author: "KawtharAbdulkabir"
+date: "11/17/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(mdsr)
+library(tidyverse)
+library(nycflights13)
+library(dplyr)
+library(ggplot2)
+library(mosaicData)
+set.seed(100)
+```
+
+
+#useful link: http://www.stat.ucla.edu/~rgould/110as02/bshypothesis.pdf
+
+
+
+```{r}
+#This function returns the sample distribution of mean, median, or standard deviation
+d2 <- flights %>% filter(dest =="SFO", !is.na(arr_delay))
+
+sample_305 <- function(x, reps = 1000, s_size, stats = c("mean", "median", "sd")) {
+  #remove the missing values in the vector
+  x <- na.omit(x)
+  da <- as.data.frame(x)
+  do(reps) * summarize(sample_n(da, size = s_size, replace = T), #Avg_delay = mean(arr_delay))
+      sampleD = case_when(stats == "mean" ~ mean(x),
+                          stats == "median" ~ median(x),
+                          stats == "sd" ~ sd(x)       ))
+  hist(x)
+  
+}
+
+sample_305(d2$arr_delay, 1500, 150, "mean")
+```
+
+#this is the confidence interval function
+```{r}
+
+d2 <- flights %>% filter(dest =="SFO", !is.na(arr_delay))
+
+conf_305 <-function(x, reps = 1000, s_size, stats = c("mean", "median", "sd"), conf_lvl) {
+  
+  lower_confidence <- (1-conf_lvl)/2
+  
+  upper_confidence <- conf_lvl + lower_confidence
+  
+  if(stats == "mean") {
+    s <- sample_305(x, s_size = s_size, stats=stats)
+    qdata(~sampleD,p=c(lower_confidence,upper_confidence), data = s)
+  }else if (stats == "median"){
+  
+    s <- sample_305(x, s_size = s_size, stats=stats )
+    qdata(~sampleD,p=c(lower_confidence,upper_confidence), data = s)
+  }
+} 
+
+conf_305(d2$arr_delay, 1500, 150, "mean", .95)
+
+```
+
+
+```{r}
+library(nycflights13)
+library(tidyverse)
+AA_winter <- flights %>% filter(month %in% c(12,1,2), carrier == "AA") 
+```
+
+
+#This is the Hypothesis Test Function
+
+```{r}
+#hypothesis test
+# dont need reps or sample size because it will all be fixed on the vector x
+ht <- function(x, alternative = c("two, right, left"), claimed_v, stats = c("mean", "median")){
+  x<- na.omit(x)
+  if(stats == "mean"){
+    #always account for the missing values
+    observed_mean <- mean(x, na.rm =T)
+    difference <- abs(observed_mean - claimed_v)
+    
+    #shift the data to find out if the claimed is true because we are trying to measure the chances of it being true
+    new_x <- x - observed_mean + claimed_v
+    #sample_n expects a df
+    #boostrap sample contains 1000 samples of the mean
+    bootsample <- sample_305(new_x, reps = 1000, s_size = length(x), stats )
+    p_value <- case_when(alternative == "two"~(sum(bootsample$sampleD <= claimed_v - difference)+sum(bootsample$sampleD >= claimed_v + difference))/1000,
+                         alternative == "right" ~ ((sum(bootsample$sampleD >= claimed_v + difference))/1000),
+                         alternative == "left" ~ ((sum(bootsample$sampleD <= claimed_v + difference))/1000))
+    
+  }else if(stats == "median"){
+    #always account for the missing values
+    observed_mean <- median(x, na.rm =T)
+    difference <- abs(observed_mean - claimed_v)
+    
+    #shift the data to find out if the claimed is true because we are trying to measure the chances of it being true
+    new_x <- x - observed_mean + claimed_v
+    #sample_n expects a df
+    #boostrap sample contains 1000 samples of the mean
+    bootsample <- sample_305(new_x, reps = 1000, s_size = length(x), stats )
+    p_value <- case_when(alternative == "two"~(sum(bootsample$sampleD <= claimed_v - difference)+sum(bootsample$sampleD >= claimed_v + difference))/1000,
+                         alternative == "right" ~ ((sum(bootsample$sampleD >= claimed_v + difference))/1000),
+                         alternative == "left" ~ ((sum(bootsample$sampleD <= claimed_v + difference))/1000))
+    
+    
+  }
+  
+}
+
+#ht <- function(x, alternative = c("two, right, left"), claimed_v, stats = c("mean", "median"))
+
+hyp <- ht(AA_winter$arr_delay, "left", 0, "mean")
+
+#pvalue is 1
+hyp
+
+```
+
+
+
+
+
+#THIS is sample 305 extended
+
+```{r}
+
+speed <- c(28,-44,29,30,26,27,22,23,33,16,24,40,21,31,34,-2,25,19)
+
+#c_mean = claimed mean
+#obsmean = observed mean
+c_mean <- 33.02
+#the observed mean is the mean of the given vector
+#the observed mean is 21.22222
+obsmean <- mean(speed)
+obsmean
+
+#new shifted sample
+#the shifted sample is the vector minus the observed mean plus the claimed mean
+newspeed <- speed - obsmean + c_mean
+newspeed
+#this calculates the mean of the shifted sample
+#the mean of the shifted sample is the same as the claimed mean 33.02
+mean(newspeed)
+
+#This function argument takes in a dataset or vector, a reps arg, a sample_size arg, and a vector with the choice for the statistic to run
+sample_305 <- function(x, reps = 1000, s_size, stats = c("mean", "median", "sd")) {
+  
+  #remove the missing values in the vector
+  x <- na.omit(x)
+  #convert the dataset to a dataframe
+  da <- as.data.frame(x)
+  #calculate the number of reps to summarize the sample. The sample is sampled with replacement. It returns n amount of mean(arr_delay) which is the sample(with replacement) means summarized in a table of n length.
+  #this table generates the sample distribution.
+  do(reps) * summarize(sample_n(da, size = s_size, replace = T), Avg_delay = mean(arr_delay))
+      
+  #this line calculates the mean, median, or standard deviation sample distribution depending on choice
+  #the sampleD is the bootstrap distribution.
+  #The bootstrap distribution approximates the sampling distribution for xbar.
+  #xbar estimates the mean of the population from which it was drawn
+  #use this with any statistic you want to calculate 
+  sampleD = case_when(stats == "mean" ~ mean(x),
+                      stats == "median" ~ median(x),
+                      stats == "sd" ~ sd(x)       )
+  
+
+}
+```
+
+
+

@@ -1,0 +1,102 @@
+---
+title: "class_111418"
+author: "KawtharAbdulkabir"
+date: "11/14/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(modelr)
+library(ggplot2)
+```
+
+We are interested in fitting a model which predicts the price of the diamond based off its weight.
+
+```{r}
+ggplot(diamonds, aes(x = carat, y = price)) + geom_point() + facet_grid(color~cut)
+
+ggplot(filter(diamonds, cut == "Fair"), aes(x = carat, y = price)) + geom_point() + facet_wrap(~color)
+#J has the most linear trend
+```
+
+We are going to select dimonds in the fair cut category and color J
+```{r}
+da <- diamonds %>% filter(cut == "Fair", color == "J", !is.na(price), !is.na(carat))
+```
+
+Create a histogram for the price to check whether it is symmetric with bell shape or not
+
+```{r}
+ggplot(da, aes(x = log(price))) + geom_histogram(bins = 15)
+```
+
+Now let's create the linear regression model which predicts the log(price) based on the weight of the diamond
+
+```{r}
+
+da <- da %>% mutate(newprice = log(price))
+
+n <- nrow(da)
+
+index <-  sample(1:n, size = floor(n*0.8), replace = F)
+
+#separating the observations into 80 and 20%
+da_training <- da[index,]
+  
+da_testing <- da[-index,]
+
+formula <- newprice ~ carat
+#the outcome of the model is saved in a list
+# model1 <- lm(y~x1, data = da)
+model1 <- lm(newprice~carat, data = da)
+
+#model1 is a list which contains several outcomes of the linear model
+# to look at the outcome of the model we use the summary function
+
+summary(model1)
+
+#second with da_training, you get the same val for intercept but slightly different for slope
+
+model1 <- lm(newprice~carat, data = da_training)
+```
+
+Check the prediction accuracy of the model
+
+```{r}
+datesting <- da_testing %>% select(newprice, carat) %>% add_predictions(model1)
+
+datesting
+
+#lets visualize how well the model predicts:
+
+ggplot(datesting, aes(x = carat)) + geom_line(aes(y = newprice), color = "blue", size = 2) + geom_line(aes(y = pred), color = "red", size = 2)
+```
+
+```{r}
+names(da_training)
+```
+
+Add new variables to the model:
+
+```{r}
+#model2 <- lm(newprice ~ carat + x, da = da_training)
+
+#model2 <- lm(newprice ~ carat + x + y, da = da_training)
+
+model2 <- lm(newprice ~ carat + y, da = da_training)
+
+summary(model2)
+```
+
+```{r}
+datesting <- da_testing %>% select(newprice, carat, y) %>% add_predictions(model2)
+
+datesting
+
+#lets visualize how well the model predicts:
+
+ggplot(datesting, aes(x = carat)) + geom_line(aes(y = newprice), color = "blue", size = 2) + geom_line(aes(y = pred), color = "red", size = 2)
+```
+

@@ -1,0 +1,148 @@
+---
+title: "class_111218"
+author: "KawtharAbdulkabir"
+date: "11/12/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(modelr)
+library(tidyverse)
+```
+
+
+```{r}
+
+#hypothesis test
+# dont need reps or sample size because it will all be fixed on the vector x
+ht <- function(x, alternative = c("two, right, left"), claimed_v, stats = c("mean", "median")){
+  
+  if(stats == "mean"){
+    #always account for the missing values
+    observed_mean <- mean(x, na.rm =T)
+    difference <- abs(observed_mean - claimed_v)
+    
+    #shift the data to find out if the claimed is true because we are trying to measure the chances of it being true
+    new_x <- x - observed_mean + claimed_v
+    #sample_n expects a df
+    #boostrap sample contains 1000 samples of the mean
+    bootsample <- sample_305(new_x, reps = 1000, s_size = length(x), stats )
+    p_value <- case_when(alternative == "two"~(sum(bootsample$sampleD <= claimed_v - difference)+sum(bootsample$sampleD >= claimed_v + difference))/1000,
+                         alternative == "right" ~ ((sum(bootsample$sampleD >= claimed_v + difference))/1000),
+                         alternative == "left" ~ ((sum(bootsampled$sampleD <= claimed_v + difference))/1000))
+    
+  }else if(stats == "median"){
+    #always account for the missing values
+    observed_mean <- median(x, na.rm =T)
+    difference <- abs(observed_mean - claimed_v)
+    
+    #shift the data to find out if the claimed is true because we are trying to measure the chances of it being true
+    new_x <- x - observed_mean + claimed_v
+    #sample_n expects a df
+    #boostrap sample contains 1000 samples of the mean
+    bootsample <- sample_305(new_x, reps = 1000, s_size = length(x), stats )
+    p_value <- case_when(alternative == "two"~(sum(bootsample$sampleD <= claimed_v - difference)+sum(bootsample$sampleD >= claimed_v + difference))/1000,
+                         alternative == "right" ~ ((sum(bootsample$sampleD >= claimed_v + difference))/1000),
+                         alternative == "left" ~ ((sum(bootsampled$sampleD <= claimed_v + difference))/1000))
+    
+    
+  }
+  
+}
+
+
+```
+
+
+
+#Modelling
+
+```{r}
+sim1
+
+ggplot(sim1, aes(x = x, y = y)) + geom_point()
+```
+
+```{r}
+#simulate uniform values of a and b
+#you will 250 models
+#class
+models <- tibble(a = runif(250, -5, 40), b = runif(250, -5, 5))
+
+#notes
+#models <- tibble(a1 = runif(250, -20,40), a2 = runif(250,-5,5))
+
+#constructs line based on vals of a and b
+geom_abline()
+
+ggplot(sim1, aes(x = x , y = y)) + geom_point() + geom_abline(aes(intercept = a, slope = b), data = models, alpha = 1/4)
+
+models[1,]
+```
+
+
+```{r}
+#first removed lines with negative slope
+#compute distance from given lines and actual points
+
+ggplot(sim1, aes(x,y))+geom_abline(aes(intercept = a,  slope= b),data=models, alpha=1/4)+geom_point()
+
+
+models[1,]
+
+#output will be a vector
+33.6473 + 3.645979*sim1$x
+
+#takes vector with intercept a slope and the df
+#get the predicted
+
+
+pred_y <- function(a, dataframe) {
+  a[1]+a[2]*dataframe$x
+}
+
+pred_y_from_model <- pred_y(c(33.6473, 3.645979), sim1)
+
+#try <- sim1try$pred <- predytry
+
+#actual observed va of the response minus the pred val and sloap
+sim1$y - pred_y(c(33.6473, 3.645979), sim1)
+
+#mod is the intercept and slope vals in a vector
+#create a function to predict difference between each y line and the data
+#takes the predicted outcome(mod)
+measure_difference <- function(mod, data){
+  diff <- data$y - pred_y(mod, data)
+  sqrt(mean(diff^2))
+}
+  
+
+
+#should return the average distanced between all actual points, and the line
+measure_difference(c(33.6473, 3.645979), sim1)
+
+out <- NULL
+
+#this function returns a vector from a df
+#to retrieve row in df, extract it and store in a vector
+helperfunction <- function(df){
+  c(df[[1,1]], df[[1,2]])
+  
+}
+
+helperfunction(models[3,])
+  
+for(i in 1:250) {
+  #will retrieve vector i
+  v1 <- helperfunction((models[i,]))
+  out[i] <- measure_difference(v1,sim1)
+  
+}
+
+models %>% mutate(distance = out) %>% arrange(distance)
+as.data.frame(out) %>% arrange(out)
+
+summary(lm(y~x, data = sim1))
+``` 
+

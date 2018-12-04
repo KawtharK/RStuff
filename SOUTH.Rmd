@@ -1,0 +1,165 @@
+---
+title: "povertydata"
+author: "KawtharAbdulkabir"
+date: "11/23/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(grid)
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+library(scales)
+
+pov <- pov %>%  mutate(region = ifelse(state %in% c("AZ","CO","ID","NM","MT","UT","NV","WY","AK","HI","OR","WA","CA"), "West", ifelse(state %in% c("IN","IL","MI","OH","WI","IA","KS","MN","MO","NE","ND","SD"), "Midwest", ifelse(state %in% c("DE","DC","FL","GA","MD","NC","AL","KT","MS","TN","AR","LA","OK","TX","SC","VA","WV"), "South", "Northeast"))))
+
+us_regions$region <- as.factor(us_regions$region)
+
+southjobdata <- us_regions %>% filter(region == "South")
+
+northjobdata <- us_regions %>% filter(region == "Northeast")
+
+midwestjobdata <- us_regions %>% filter(region == "Midwest")
+
+westjobdata <- us_regions %>% filter(region == "West")
+
+```
+
+```{r}
+mean_by_south <- pov %>% filter(region == "South") %>%
+        group_by(state) %>% 
+        summarise(
+          "2016" = mean(as.numeric(est_all_ages_pov_2016,na.rm = T))
+        ) %>% select(everything())
+
+
+mbs <- mean_by_south  %>% gather(`2016`, key = "year", value = "mean_pov")
+
+mbs$year <- as.integer(mbs$year)
+
+ggplot(mbs, aes(x = state, y = mean_pov)) + geom_boxplot()  + labs("\nYear", y= "Mean Unemployment Rate by State\n", title = "Unemployment Rate by State in the South Region of the US: 2016")
+```
+
+
+```{r}
+mean_by_state <- statejobdata %>% filter(region == "South") %>%
+        group_by(state) %>% 
+        summarise(
+          "2007" = mean(unemployment_rate_2007,na.rm = T),
+          "2008" = mean(unemployment_rate_2008,na.rm = T),
+          "2009" = mean(unemployment_rate_2009,na.rm = T),
+          "2010" = mean(unemployment_rate_2010,na.rm = T),
+          "2011" = mean(unemployment_rate_2011,na.rm = T),
+          "2012" = mean(unemployment_rate_2012,na.rm = T),
+          "2013" = mean(unemployment_rate_2013,na.rm = T),
+          "2014" = mean(unemployment_rate_2014,na.rm = T),
+          "2015" = mean(unemployment_rate_2015,na.rm = T),
+          "2016" = mean(unemployment_rate_2016,na.rm = T),
+          "2017" = mean(unemployment_rate_2017,na.rm = T)
+        ) %>% mutate(region = ifelse(state %in% c("AZ","CO","ID","NM","MT","UT","NV","WY","AK","HI","OR","WA","CA"), "West", ifelse(state %in% c("IN","IL","MI","OH","WI","IA","KS","MN","MO","NE","ND","SD"), "Midwest", ifelse(state %in% c("DE","DC","FL","GA","MD","NC","AL","KT","MS","TN","AR","LA","OK","TX","SC","VA","WV"), "South", "Northeast")))) 
+
+# now we will change the above table to long instead of wide
+mbs <- mean_by_state  %>% gather(`2007`,`2008`,`2009`,`2010`,`2011`,`2012`,`2013`,`2014`,`2015`,`2016`,`2017`, key = "year", value = "Mean_Unemployment")
+
+# next change the variable year to integer
+mbs$year <- as.integer(mbs$year)
+
+ggplot(mbs, aes(x=year, y= Mean_Unemployment))+geom_line(aes(col=state)) + facet_wrap(~state, scales = "free")+expand_limits(y=0) + theme(legend.position = "none") + labs("\nYear", y= "Mean Unemployment Rate by State\n", title = "Unemployment Rate by State in the Southern Region of the US: 2007-2017") + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + scale_x_continuous(labels = function (x) floor(x))
+
+```
+
+```{r}
+mean_by_south <- statejobdata %>% filter(region == "South") %>%
+        group_by(state) %>% 
+        summarise(
+          "2007" = mean(unemployment_rate_2007,na.rm = T),
+          "2008" = mean(unemployment_rate_2008,na.rm = T),
+          "2009" = mean(unemployment_rate_2009,na.rm = T),
+          "2010" = mean(unemployment_rate_2010,na.rm = T),
+          "2011" = mean(unemployment_rate_2011,na.rm = T),
+          "2012" = mean(unemployment_rate_2012,na.rm = T),
+          "2013" = mean(unemployment_rate_2013,na.rm = T),
+          "2014" = mean(unemployment_rate_2014,na.rm = T),
+          "2015" = mean(unemployment_rate_2015,na.rm = T),
+          "2016" = mean(unemployment_rate_2016,na.rm = T),
+          "2017" = mean(unemployment_rate_2017,na.rm = T)
+        ) 
+
+# now we will change the above table to long instead of wide
+mbs <- mean_by_south  %>% gather(`2007`,`2008`,`2009`,`2010`,`2011`,`2012`,`2013`,`2014`,`2015`,`2016`,`2017`, key = "year", value = "Mean_Unemployment")
+
+# next change the variable year to integer
+mbs$year <- as.integer(mbs$year)
+
+ggplot(m1, aes(x=year, y= Mean_Unemployment))+geom_line(aes(col=state)) + facet_wrap(~state, scales = "free")+expand_limits(y=0) + theme(legend.position = "none") + labs("\nYear", y= "Mean Unemployment Rate by State\n", title = "Unemployment Rate by State in the Southern Region of the US: 2007-2017") + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + scale_x_continuous(labels = function (x) floor(x))
+
+```
+
+
+
+
+
+
+
+```{r}
+mean_by_south <- statejobdata %>% filter(region == "South") %>%
+        group_by(state) %>% 
+        summarise(
+          "2007" = mean(unemployment_rate_2007,na.rm = T),
+          "2008" = mean(unemployment_rate_2008,na.rm = T),
+          "2009" = mean(unemployment_rate_2009,na.rm = T),
+          "2010" = mean(unemployment_rate_2010,na.rm = T),
+          "2011" = mean(unemployment_rate_2011,na.rm = T),
+          "2012" = mean(unemployment_rate_2012,na.rm = T),
+          "2013" = mean(unemployment_rate_2013,na.rm = T),
+          "2014" = mean(unemployment_rate_2014,na.rm = T),
+          "2015" = mean(unemployment_rate_2015,na.rm = T),
+          "2016" = mean(unemployment_rate_2016,na.rm = T),
+          "2017" = mean(unemployment_rate_2017,na.rm = T)
+        ) %>% mutate(region = ifelse(state %in% c("AZ","CO","ID","NM","MT","UT","NV","WY","AK","HI","OR","WA","CA"), "West", ifelse(state %in% c("IN","IL","MI","OH","WI","IA","KS","MN","MO","NE","ND","SD"), "Midwest", ifelse(state %in% c("DE","DC","FL","GA","MD","NC","AL","KT","MS","TN","AR","LA","OK","TX","SC","VA","WV"), "South", "Northeast")))) %>% select(everything())
+
+
+mbs <- mean_by_south  %>% gather(`2007`,`2008`,`2009`,`2010`,`2011`,`2012`,`2013`,`2014`,`2015`,`2016`,`2017`, key = "year", value = "Mean_Unemployment")
+
+mbs$year <- as.integer(mbs$year)
+
+ggplot(mbs, aes(x = state, y = Mean_Unemployment)) + geom_boxplot()  + labs("\nYear", y= "Mean Unemployment Rate by State\n", title = "Unemployment Rate by State in the South Region of the US: 2007-2017")
+```
+
+
+Test to see pop by year 2010 amd popn diff
+
+
+```{r}
+
+test <- popjobdata %>% filter(region == "South") %>%
+        group_by(state.x) %>% 
+        summarise(
+          "2010" = mean(unemployment_rate_2010,na.rm = T)
+        ) %>% select(everything())
+
+# now we will change the above table to long instead of wide
+mb1 <- test  %>% gather(`2010`, key = "year", value = "Mean_Unemployment")
+
+# next change the variable year to integer
+mb1$year <- as.integer(mb1$year)
+
+ggplot(mb1, aes(x=state, y= Mean_Unemployment))+geom_line(aes(col=state)) + facet_wrap(~state, scales = "free")+expand_limits(y=0) + theme(legend.position = "none") + labs("\nYear", y= "Mean Unemployment Rate by State\n", title = "Unemployment Rate by State in the Southern Region of the US: 2007-2017") + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + scale_x_continuous(labels = function (x) floor(x))
+
+
+```
+
+
+```{r}
+
+t2 <- popjobdata %>% filter(region == "South") %>% group_by(state.x) %>% mean(popjobdata$Population_2010)
+
+t2 <- as.data.frame(t2)
+
+ggplot(t2, aes(x = state.x, y = Population_2010)) + geom_line()
+```
+
+

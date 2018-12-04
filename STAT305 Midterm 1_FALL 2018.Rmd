@@ -1,0 +1,155 @@
+---
+title: "STAT305 Midterm 1_FALL 2018"
+author: "Kawthar Abdulkabir"
+date: "10/17/2018"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(dplyr)
+library(mdsr)
+library(ggplot2)
+library(tidyr)
+
+
+```
+
+# Question 1
+
+### 1a.
+
+```{r}
+library(gapminder)
+library(skimr)
+
+str(gapminder)
+```
+### 1b.
+There are 6 variabeles in the gapminder and 1704 observations. The variables:
+-country = Factor w/142 levels
+-continent = Factor 1/5 levels
+-year = int
+-lifeExp = num
+-pop = int
+-gdpPercap = num
+
+#Question 2
+
+### Q2a
+
+Afghanistan had the larger population in 1982. Australia had the smallest.
+
+
+```{r}
+
+year1 <- filter(gapminder, year == 1982) 
+
+summary(year1)
+
+
+
+```
+
+
+### Q 2b
+
+```{r}
+g1 <- mutate(gapminder, lifeExpMonths = lifeExp * 12)
+g1
+```
+
+### Q 2c
+
+```{r}
+
+
+filtered <- filter(gapminder, year == 1962)
+
+ggplot(filtered, aes(x = pop, y = gdpPercap, col = continent)) +
+  geom_point(position = "jitter") +
+  geom_jitter() + 
+  scale_x_log10() + 
+  scale_y_log10() 
+```
+#Question 3
+
+### Q3a
+
+```{r}
+by_year_continent <- gapminder %>% group_by(continent, year) %>% summarize(medianGdpPercap = median(gdpPercap)) 
+by_year_continent
+
+```
+
+
+###Q3b
+
+```{r}
+
+ggplot(by_year_continent, aes(x = year, y = medianGdpPercap, col = continent))+
+  geom_point() + expand_limits(y=0)
+  
+
+```
+### Q3c
+
+The graph shows the change in median gpd for different continents throughout the years The continent with the highest gdp throughout all years is Oceania. The continent with the lowest for all years is Africa. Africa also stays pretty consistent in their median throughout all years.  Oceania and Europe have the largest increase in their median through the years. With Americas and Asia having smaller increases. None of the continents had a decline in median over the years.
+
+### Q3d
+
+```{r}
+
+by_year_continent <- gapminder %>% group_by(continent, year) %>% summarize(medianGdpPercap = median(gdpPercap))
+
+ggplot(by_year_continent, aes(x = year, y = medianGdpPercap, col = continent))+
+  geom_line() + expand_limits(y=0)
+
+```
+
+### Q 3e
+
+This graph shows the change in gdp of each continent over time. it displays how the median onl progresses throughout the years in each continent. Oceania and Europe have the highest, while africa has the smallest.
+
+
+
+#Question 4
+
+###4a i & ii:
+
+```{r}
+
+year1 <- filter(gapminder, year == 1967) 
+
+#graph 1967
+ggplot(year1, aes(x = continent, y = gdpPercap)) +
+  geom_boxplot() +
+  ggtitle("GDP per capita among continents for 1967") +
+  xlab("Continent") + ylab("GDP")
+
+#graph 2007
+year2 <- filter(gapminder, year == 2007)
+ggplot(year2, aes(x = continent, y = gdpPercap)) +
+  geom_boxplot() +
+  ggtitle("GDP per capita among continents for 2007") +
+  xlab("Continent") + ylab("GDP")
+
+```
+
+###4a iii. 
+In 1967, the gdp was much lower accross the board than in 2007. In both years, africa has the lowest average and oceania has the highest. the middle values are distributed the same as well among the same years. However, the values are comparatively different as expected. The continent with the lowest median value is africa, and the second continent is asia.This is the same for both years. in 2007 Europe has the highest gdp over all, but oceania has the highest median gdp.
+
+
+#Question 5
+
+### Q 5a.
+```{r}
+bakers <- baker_results
+skim(bakers)
+
+```
+
+### Q5b.
+
+The skim function skims the dataset by variable type: factor, integer, and numeric and provides an overview of the data.. It groups and summarizes based on the column variable types and  makes calculations and comparisons of them. It calculates the mean, sd, and different percentiles for those columns as well as a histogram. It summarizes all these values and displays them.

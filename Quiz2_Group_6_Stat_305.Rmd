@@ -1,0 +1,192 @@
+---
+title: "Group_6_Stat_305_Q2"
+author: "Lulu Zhang, Aaron Deskins, Kawthar Abdulkabir"
+date: "10/24/2018"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(grid)
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+
+statejobdata <- read.csv(file="/Users/Kawthar/Documents/Unemployment_edited.csv", header=TRUE, sep=",")
+```
+
+#Question 1
+#What is the mean unemployment value by region for the years 2007 to 2017?
+
+
+#Answer
+First we mutated the df to separate each state by region. To get mean unemployment value by state in each region, we used dplyr to group the data by region. Next we summarised each year by its mean value. The state column originally had 3275 observations which were condensed down to 51 for each state and washington DC. The states were originally observed by county as well which is why there were so many observations. The new data frame 'meanstatejobdata' contains just 51 observations of 12 variables. This will allow us to visualize the values by year. Next we used the gather function to make the df long instead of wide. This was to allow each mean value to be stored in a 'year' column to be graphed as x. Next we ran the min/max functions to find the range.
+
+```{r}
+#function to make all column names lowercase
+colnames(statejobdata) <- colnames(statejobdata) %>% str_to_lower()
+
+statejobdata <- statejobdata %>%  mutate(region = ifelse(state %in% c("AZ","CO","ID","NM","MT","UT","NV","WY","AK","HI","OR","WA","CA"), "West", ifelse(state %in% c("IN","IL","MI","OH","WI","IA","KS","MN","MO","NE","ND","SD"), "Midwest", ifelse(state %in% c("DE","DC","FL","GA","MD","NC","AL","KT","MS","TN","AR","LA","OK","TX","SC","VA","WV"), "South", "Northeast"))))
+
+meanstatejobdata <- statejobdata %>%  
+        group_by(region) %>% 
+        summarise(
+          "2007" = mean(unemployment_rate_2007,na.rm = T),
+          "2008" = mean(unemployment_rate_2008,na.rm = T),
+          "2009" = mean(unemployment_rate_2009,na.rm = T),
+          "2010" = mean(unemployment_rate_2010,na.rm = T),
+          "2011" = mean(unemployment_rate_2011,na.rm = T),
+          "2012" = mean(unemployment_rate_2012,na.rm = T),
+          "2013" = mean(unemployment_rate_2013,na.rm = T),
+          "2014" = mean(unemployment_rate_2014,na.rm = T),
+          "2015" = mean(unemployment_rate_2015,na.rm = T),
+          "2016" = mean(unemployment_rate_2016,na.rm = T),
+          "2017" = mean(unemployment_rate_2017,na.rm = T)
+        ) %>% select(region, everything())
+
+
+#changed the above table to wide
+mean_region <- meanstatejobdata  %>% gather(`2007`,`2008`,`2009`,`2010`,`2011`,`2012`,`2013`,`2014`,`2015`,`2016`,`2017`, key = "year", value = "Mean_Unemployment")
+
+#next changed the variable year to integer
+mean_region$year <- as.numeric(mean_region$year)
+
+ggplot(mean_region, aes(x=year, y= Mean_Unemployment))+geom_line(aes(col=region)) + labs("\nYear", y= "Mean Unemployment Rate by Region\n", title = "Unemployment Rate by Region of the US: 2007-2017") +  scale_x_continuous(labels = function (x) floor(x)) 
+
+
+range(mean_region$region)
+range
+max(mean_region$region)
+```
+
+#Q1 Conclusion
+
+The data for all regions is skewed right which indicates the mean value is greater than the median. For every region of the US, the mean unemployment was highest for between 2009 to about 2011. The Midwest had the lowest rate across all years and the West had the highest. In the future, some further explorations can be: What factors lead the midwest to have the lowest rate for all years? How does the overall civilian labor force compare to the rate of unemployment per year? 
+
+#Question 2
+#What is the mean unemployment value by state for regions with the Max and Min value for the years 2007-2017?
+
+#Answer
+First we performed the same mutations and summaries as stated in answer 1. The difference here was that we also filtered the df by theregion wanted to display and we grouped by 'state' instead of region. Finally we applied a facet_wrap by state, and adjusted the theme, scales, and labels. Each facet scale is adjusted to fit the range of each state.
+
+```{r}
+mean_by_state <- statejobdata %>% filter(region == "Midwest") %>%
+        group_by(state) %>% 
+        summarise(
+          "2007" = mean(unemployment_rate_2007,na.rm = T),
+          "2008" = mean(unemployment_rate_2008,na.rm = T),
+          "2009" = mean(unemployment_rate_2009,na.rm = T),
+          "2010" = mean(unemployment_rate_2010,na.rm = T),
+          "2011" = mean(unemployment_rate_2011,na.rm = T),
+          "2012" = mean(unemployment_rate_2012,na.rm = T),
+          "2013" = mean(unemployment_rate_2013,na.rm = T),
+          "2014" = mean(unemployment_rate_2014,na.rm = T),
+          "2015" = mean(unemployment_rate_2015,na.rm = T),
+          "2016" = mean(unemployment_rate_2016,na.rm = T),
+          "2017" = mean(unemployment_rate_2017,na.rm = T)
+        ) %>% mutate(region = ifelse(state %in% c("AZ","CO","ID","NM","MT","UT","NV","WY","AK","HI","OR","WA","CA"), "West", ifelse(state %in% c("IN","IL","MI","OH","WI","IA","KS","MN","MO","NE","ND","SD"), "Midwest", ifelse(state %in% c("DE","DC","FL","GA","MD","NC","AL","KT","MS","TN","AR","LA","OK","TX","SC","VA","WV"), "South", "Northeast")))) 
+
+
+mbs <- mean_by_state  %>% gather(`2007`,`2008`,`2009`,`2010`,`2011`,`2012`,`2013`,`2014`,`2015`,`2016`,`2017`, key = "year", value = "Mean_Unemployment")
+
+mbs$year <- as.integer(mbs$year)
+
+ggplot(mbs, aes(x=year, y= Mean_Unemployment))+geom_line(aes(col=state)) + facet_wrap(~state, scales = "free")+expand_limits(y=0) + theme(legend.position = "none") + labs("\nYear", y= "Mean Unemployment Rate by Region\n", title = "Unemployment Rate by State in the Midwest Region of the US: 2007-2017") + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + scale_x_continuous(labels = function (x) floor(x))
+
+```
+
+
+```{r}
+mean_by_state <- statejobdata %>% filter(region == "West") %>%
+        group_by(state) %>% 
+        summarise(
+          "2007" = mean(unemployment_rate_2007,na.rm = T),
+          "2008" = mean(unemployment_rate_2008,na.rm = T),
+          "2009" = mean(unemployment_rate_2009,na.rm = T),
+          "2010" = mean(unemployment_rate_2010,na.rm = T),
+          "2011" = mean(unemployment_rate_2011,na.rm = T),
+          "2012" = mean(unemployment_rate_2012,na.rm = T),
+          "2013" = mean(unemployment_rate_2013,na.rm = T),
+          "2014" = mean(unemployment_rate_2014,na.rm = T),
+          "2015" = mean(unemployment_rate_2015,na.rm = T),
+          "2016" = mean(unemployment_rate_2016,na.rm = T),
+          "2017" = mean(unemployment_rate_2017,na.rm = T)
+        ) %>% mutate(region = ifelse(state %in% c("AZ","CO","ID","NM","MT","UT","NV","WY","AK","HI","OR","WA","CA"), "West", ifelse(state %in% c("IN","IL","MI","OH","WI","IA","KS","MN","MO","NE","ND","SD"), "Midwest", ifelse(state %in% c("DE","DC","FL","GA","MD","NC","AL","KT","MS","TN","AR","LA","OK","TX","SC","VA","WV"), "South", "Northeast")))) 
+
+mbs <- mean_by_state  %>% gather(`2007`,`2008`,`2009`,`2010`,`2011`,`2012`,`2013`,`2014`,`2015`,`2016`,`2017`, key = "year", value = "Mean_Unemployment")
+
+mbs$year <- as.integer(mbs$year)
+
+ggplot(mbs, aes(x=year, y= Mean_Unemployment))+geom_line(aes(col=state)) + facet_wrap(~state, scales = "free")+expand_limits(y=0) + theme(legend.position = "none") + labs("\nYear", y= "Mean Unemployment Rate by State\n", title = "Unemployment Rate by State in the Western Region of the US: 2007-2017") + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + scale_x_continuous(labels = function (x) floor(x))
+
+``` 
+
+#Question 2 Conclusion
+The Midwestern region has the has lowest overall rate for all regions and the West has the highest. Some questions that can explored are, what are the populations differences in these states? Do the population densities contribute to these ranges? What level of urban influence contributes to unemployment rate? 
+
+#Question 3
+#What is the mean unemployment value by state for the mid range regions for the years 2007-2017?
+
+#Answer
+We performed the same mutations and summaries as stated in question 2, filtering by the desired regions.
+
+```{r}
+mean_by_state <- statejobdata %>% filter(region == "South") %>%
+        group_by(state) %>% 
+        summarise(
+          "2007" = mean(unemployment_rate_2007,na.rm = T),
+          "2008" = mean(unemployment_rate_2008,na.rm = T),
+          "2009" = mean(unemployment_rate_2009,na.rm = T),
+          "2010" = mean(unemployment_rate_2010,na.rm = T),
+          "2011" = mean(unemployment_rate_2011,na.rm = T),
+          "2012" = mean(unemployment_rate_2012,na.rm = T),
+          "2013" = mean(unemployment_rate_2013,na.rm = T),
+          "2014" = mean(unemployment_rate_2014,na.rm = T),
+          "2015" = mean(unemployment_rate_2015,na.rm = T),
+          "2016" = mean(unemployment_rate_2016,na.rm = T),
+          "2017" = mean(unemployment_rate_2017,na.rm = T)
+        ) %>% mutate(region = ifelse(state %in% c("AZ","CO","ID","NM","MT","UT","NV","WY","AK","HI","OR","WA","CA"), "West", ifelse(state %in% c("IN","IL","MI","OH","WI","IA","KS","MN","MO","NE","ND","SD"), "Midwest", ifelse(state %in% c("DE","DC","FL","GA","MD","NC","AL","KT","MS","TN","AR","LA","OK","TX","SC","VA","WV"), "South", "Northeast")))) 
+
+# now we will change the above table to long instead of wide
+mbs <- mean_by_state  %>% gather(`2007`,`2008`,`2009`,`2010`,`2011`,`2012`,`2013`,`2014`,`2015`,`2016`,`2017`, key = "year", value = "Mean_Unemployment")
+
+# next change the variable year to integer
+mbs$year <- as.integer(mbs$year)
+
+ggplot(mbs, aes(x=year, y= Mean_Unemployment))+geom_line(aes(col=state)) + facet_wrap(~state, scales = "free")+expand_limits(y=0) + theme(legend.position = "none") + labs("\nYear", y= "Mean Unemployment Rate by State\n", title = "Unemployment Rate by State in the Southern Region of the US: 2007-2017") + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + scale_x_continuous(labels = function (x) floor(x))
+
+```
+
+```{r}
+mean_by_state <- statejobdata %>% filter(region == "Northeast") %>%
+        group_by(state) %>% 
+        summarise(
+          "2007" = mean(unemployment_rate_2007,na.rm = T),
+          "2008" = mean(unemployment_rate_2008,na.rm = T),
+          "2009" = mean(unemployment_rate_2009,na.rm = T),
+          "2010" = mean(unemployment_rate_2010,na.rm = T),
+          "2011" = mean(unemployment_rate_2011,na.rm = T),
+          "2012" = mean(unemployment_rate_2012,na.rm = T),
+          "2013" = mean(unemployment_rate_2013,na.rm = T),
+          "2014" = mean(unemployment_rate_2014,na.rm = T),
+          "2015" = mean(unemployment_rate_2015,na.rm = T),
+          "2016" = mean(unemployment_rate_2016,na.rm = T),
+          "2017" = mean(unemployment_rate_2017,na.rm = T)
+        ) %>% mutate(region = ifelse(state %in% c("AZ","CO","ID","NM","MT","UT","NV","WY","AK","HI","OR","WA","CA"), "West", ifelse(state %in% c("IN","IL","MI","OH","WI","IA","KS","MN","MO","NE","ND","SD"), "Midwest", ifelse(state %in% c("DE","DC","FL","GA","MD","NC","AL","KT","MS","TN","AR","LA","OK","TX","SC","VA","WV"), "South", "Northeast")))) 
+
+# now we will change the above table to long instead of wide
+mbs <- mean_by_state  %>% gather(`2007`,`2008`,`2009`,`2010`,`2011`,`2012`,`2013`,`2014`,`2015`,`2016`,`2017`, key = "year", value = "Mean_Unemployment")
+
+# next change the variable year to integer
+mbs$year <- as.integer(mbs$year)
+
+ggplot(mbs, aes(x=year, y= Mean_Unemployment))+geom_line(aes(col=state)) + facet_wrap(~state, scales = "free")+expand_limits(y=0) + theme(legend.position = "none") + labs("\nYear", y= "Mean Unemployment Rate by State\n", title = "Unemployment Rate by State in the Northeast Region of the US: 2007-2017") + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + scale_x_continuous(labels = function (x) floor(x))
+```
+
+#Question 3 Conclusion
+
+The states in these regions have a wide spread in population levels. This could contribute to the spread in rate. As well as give insight into why these states fall in the middle region between West and Midwest. Questions we could ask are what is the population for each state in the region? How do populations differ between adjoining states? What level or rural and urban influence is there by state? How does the employed labor force compare to the civilian labor force?
+

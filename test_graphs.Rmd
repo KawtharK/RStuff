@@ -1,0 +1,427 @@
+---
+title: "Test_graphs"
+author: "KawtharAbdulkabir"
+date: "11/4/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(grid)
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+library(readr)
+#colnames(poverty) <- colnames(poverty) %>% str_to_lower()
+#joined_pov_unemp <- left_join(statejobdata, poverty, key = "state")jobdata_byregion
+
+```
+
+Create a function to filter by region of the US
+Create a model to predict mean unemployment rate for 2018
+Inner join with pov or poverty to gain insights from the data
+
+```{r}
+
+
+#numer_labor_force <- lapply(labor_force, as.numeric)
+```
+
+
+```{r}
+
+
+us_regions$region <- as.factor(us_regions$region)
+
+southjobdata <- us_regions %>% filter(region == "South")
+
+northjobdata <- us_regions %>% filter(region == "Northeast")
+
+midwestjobdata <- us_regions %>% filter(region == "Midwest")
+
+westjobdata <- us_regions %>% filter(region == "West")
+
+
+
+
+#function to make all column names lowercase
+colnames(statejobdata) <- colnames(statejobdata) %>% str_to_lower()
+
+jobdata_byregion <- statejobdata %>%  mutate(region = ifelse(state %in% c("AZ","CO","ID","NM","MT","UT","NV","WY","AK","HI","OR","WA","CA"), "West", ifelse(state %in% c("IN","IL","MI","OH","WI","IA","KS","MN","MO","NE","ND","SD"), "Midwest", ifelse(state %in% c("DE","DC","FL","GA","MD","NC","AL","KT","MS","TN","AR","LA","OK","TX","SC","VA","WV"), "South", "Northeast"))))
+
+meanregionjobdata <- statejobdata %>%  
+        group_by(region) %>% 
+        summarise(
+          "2007" = mean(unemployment_rate_2007,na.rm = T),
+          "2008" = mean(unemployment_rate_2008,na.rm = T),
+          "2009" = mean(unemployment_rate_2009,na.rm = T),
+          "2010" = mean(unemployment_rate_2010,na.rm = T),
+          "2011" = mean(unemployment_rate_2011,na.rm = T),
+          "2012" = mean(unemployment_rate_2012,na.rm = T),
+          "2013" = mean(unemployment_rate_2013,na.rm = T),
+          "2014" = mean(unemployment_rate_2014,na.rm = T),
+          "2015" = mean(unemployment_rate_2015,na.rm = T),
+          "2016" = mean(unemployment_rate_2016,na.rm = T),
+          "2017" = mean(unemployment_rate_2017,na.rm = T)
+        ) %>% select(region, everything()) 
+
+
+#changed the above table to wide
+mean_region <- meanregionjobdata  %>% gather(`2007`,`2008`,`2009`,`2010`,`2011`,`2012`,`2013`,`2014`,`2015`,`2016`,`2017`, key = "year", value = "Mean_Unemployment")
+```
+
+
+```{r}
+#Test 1:
+  
+  meanregionjobdata <- jobdata_byregion %>%  
+        group_by(region) %>% 
+        summarise(
+          "2007" = mean(unemployment_rate_2007,na.rm = T),
+          "2008" = mean(unemployment_rate_2008,na.rm = T),
+          "2009" = mean(unemployment_rate_2009,na.rm = T),
+          "2010" = mean(unemployment_rate_2010,na.rm = T),
+          "2011" = mean(unemployment_rate_2011,na.rm = T),
+          "2012" = mean(unemployment_rate_2012,na.rm = T),
+          "2013" = mean(unemployment_rate_2013,na.rm = T),
+          "2014" = mean(unemployment_rate_2014,na.rm = T),
+          "2015" = mean(unemployment_rate_2015,na.rm = T),
+          "2016" = mean(unemployment_rate_2016,na.rm = T),
+          "2017" = mean(unemployment_rate_2017,na.rm = T)
+        ) %>% select(region, everything())  %>% gather(`2007`,`2008`,`2009`,`2010`,`2011`,`2012`,`2013`,`2014`,`2015`,`2016`,`2017`, key = "year", value = c("Mean_Unemployment", "Mean_laborforce"))
+
+
+#changed the above table to wide
+#mean_region <- meanstatejobdata  %>% gather(`2007`,`2008`,`2009`,`2010`,`2011`,`2012`,`2013`,`2014`,`2015`,`2016`,`2017`, key = "year", value = "Mean_Unemployment")
+```
+
+Attempt to make factor columns numeric one by one
+
+```{r}
+
+
+
+mean_civilian <- statejobdata %>%  
+        group_by(region) %>% 
+        summarise(
+          "2007" = mean(civilian_labor_force_2007,na.rm = T),
+          "2008" = mean(civilian_labor_force_2008,na.rm = T),
+          "2009" = mean(civilian_labor_force_2009,na.rm = T),
+          "2010" = mean(civilian_labor_force_2010,na.rm = T),
+          "2011" = mean(civilian_labor_force_2011,na.rm = T),
+          "2012" = mean(civilian_labor_force_2012,na.rm = T),
+          "2013" = mean(civilian_labor_force_2013,na.rm = T),
+          "2014" = mean(civilian_labor_force_2014,na.rm = T),
+          "2015" = mean(civilian_labor_force_2015,na.rm = T),
+          "2016" = mean(civilian_labor_force_2016,na.rm = T),
+          "2017" = mean(civilian_labor_force_2017,na.rm = T)
+        ) %>% select(region, everything()) %>% gather(`2007`,`2008`,`2009`,`2010`,`2011`,`2012`,`2013`,`2014`,`2015`,`2016`,`2017`, key = "year", value = "mean_civilian")
+
+
+
+```
+
+
+```{r}
+mean_civilian <- numer_labor_force %>%  
+        group_by(region) %>% 
+        summarise(
+          "2007" = mean(civilian_labor_force_2007,na.rm = T),
+          "2008" = mean(civilian_labor_force_2008,na.rm = T),
+          "2009" = mean(civilian_labor_force_2009,na.rm = T),
+          "2010" = mean(civilian_labor_force_2010,na.rm = T),
+          "2011" = mean(civilian_labor_force_2011,na.rm = T),
+          "2012" = mean(civilian_labor_force_2012,na.rm = T),
+          "2013" = mean(civilian_labor_force_2013,na.rm = T),
+          "2014" = mean(civilian_labor_force_2014,na.rm = T),
+          "2015" = mean(civilian_labor_force_2015,na.rm = T),
+          "2016" = mean(civilian_labor_force_2016,na.rm = T),
+          "2017" = mean(civilian_labor_force_2017,na.rm = T)
+        ) %>% select(region, everything())  %>% gather(key = "year", value = "Mean_laborforce")
+```
+
+
+
+
+
+
+
+
+```{r}
+southMeanLabor <- southjobdata %>%
+        group_by(state) %>% 
+        summarise(
+          "2007" = mean(as.numeric(civilian_labor_force_2007),na.rm = T),
+          "2008" = mean(as.numeric(civilian_labor_force_2008),na.rm = T),
+          "2009" = mean(as.numeric(civilian_labor_force_2009),na.rm = T),
+          "2010" = mean(as.numeric(civilian_labor_force_2010),na.rm = T),
+          "2011" = mean(as.numeric(civilian_labor_force_2011),na.rm = T),
+          "2012" = mean(as.numeric(civilian_labor_force_2012),na.rm = T),
+          "2013" = mean(as.numeric(civilian_labor_force_2013),na.rm = T),
+          "2014" = mean(as.numeric(civilian_labor_force_2014),na.rm = T),
+          "2015" = mean(as.numeric(civilian_labor_force_2015),na.rm = T),
+          "2016" = mean(as.numeric(civilian_labor_force_2016),na.rm = T),
+          "2017" = mean(as.numeric(civilian_labor_force_2017),na.rm = T)
+        ) 
+
+
+mls <- southMeanLabor  %>% gather(`2007`,`2008`,`2009`,`2010`,`2011`,`2012`,`2013`,`2014`,`2015`,`2016`,`2017`, key = "year", value = "mean_labor_force")
+
+
+
+#mls$year <- as.integer(mls$year)
+
+
+#mean_region <- mutate(mean_region, mean_labor_force = mls)
+  
+```
+
+
+```{r}
+
+ggplot(mls, aes(x=year)) + geom_line(aes(y=mean_labor_force, color=state)) + labs("\nYear", y= "Civlian Labor Force by State\n", title = "Civilian Labor Force by State of the US: 2007-2017")  + scale_y_log10() 
+
+
+```
+
+
+```{r}
+
+#Function to plot a line graph of states in each region by chose region
+
+mean_by_states <- function(data, region = c("Midwest", "South", "Northeast", "West")) {
+  
+  if(region == "Midwest"){
+  mean_by_state <- data %>% filter(region == "Midwest") %>%
+        group_by(state) %>% 
+        summarise(
+          "2007" = mean(unemployment_rate_2007,na.rm = T),
+          "2008" = mean(unemployment_rate_2008,na.rm = T),
+          "2009" = mean(unemployment_rate_2009,na.rm = T),
+          "2010" = mean(unemployment_rate_2010,na.rm = T),
+          "2011" = mean(unemployment_rate_2011,na.rm = T),
+          "2012" = mean(unemployment_rate_2012,na.rm = T),
+          "2013" = mean(unemployment_rate_2013,na.rm = T),
+          "2014" = mean(unemployment_rate_2014,na.rm = T),
+          "2015" = mean(unemployment_rate_2015,na.rm = T),
+          "2016" = mean(unemployment_rate_2016,na.rm = T),
+          "2017" = mean(unemployment_rate_2017,na.rm = T)
+        ) %>% mutate(region = ifelse(state %in% c("AZ","CO","ID","NM","MT","UT","NV","WY","AK","HI","OR","WA","CA"), "West", ifelse(state %in% c("IN","IL","MI","OH","WI","IA","KS","MN","MO","NE","ND","SD"), "Midwest", ifelse(state %in% c("DE","DC","FL","GA","MD","NC","AL","KT","MS","TN","AR","LA","OK","TX","SC","VA","WV"), "South", "Northeast")))) 
+  }else if(region == "South") {
+    mean_by_state <- data %>% filter(region == "South") %>%
+        group_by(state) %>% 
+        summarise(
+          "2007" = mean(unemployment_rate_2007,na.rm = T),
+          "2008" = mean(unemployment_rate_2008,na.rm = T),
+          "2009" = mean(unemployment_rate_2009,na.rm = T),
+          "2010" = mean(unemployment_rate_2010,na.rm = T),
+          "2011" = mean(unemployment_rate_2011,na.rm = T),
+          "2012" = mean(unemployment_rate_2012,na.rm = T),
+          "2013" = mean(unemployment_rate_2013,na.rm = T),
+          "2014" = mean(unemployment_rate_2014,na.rm = T),
+          "2015" = mean(unemployment_rate_2015,na.rm = T),
+          "2016" = mean(unemployment_rate_2016,na.rm = T),
+          "2017" = mean(unemployment_rate_2017,na.rm = T)
+        ) %>% mutate(region = ifelse(state %in% c("AZ","CO","ID","NM","MT","UT","NV","WY","AK","HI","OR","WA","CA"), "West", ifelse(state %in% c("IN","IL","MI","OH","WI","IA","KS","MN","MO","NE","ND","SD"), "Midwest", ifelse(state %in% c("DE","DC","FL","GA","MD","NC","AL","KT","MS","TN","AR","LA","OK","TX","SC","VA","WV"), "South", "Northeast")))) 
+    
+  }else if(region == "Northeast") {
+    mean_by_state <- data %>% filter(region == "Northeast") %>%
+        group_by(state) %>% 
+        summarise(
+          "2007" = mean(unemployment_rate_2007,na.rm = T),
+          "2008" = mean(unemployment_rate_2008,na.rm = T),
+          "2009" = mean(unemployment_rate_2009,na.rm = T),
+          "2010" = mean(unemployment_rate_2010,na.rm = T),
+          "2011" = mean(unemployment_rate_2011,na.rm = T),
+          "2012" = mean(unemployment_rate_2012,na.rm = T),
+          "2013" = mean(unemployment_rate_2013,na.rm = T),
+          "2014" = mean(unemployment_rate_2014,na.rm = T),
+          "2015" = mean(unemployment_rate_2015,na.rm = T),
+          "2016" = mean(unemployment_rate_2016,na.rm = T),
+          "2017" = mean(unemployment_rate_2017,na.rm = T)
+        ) %>% mutate(region = ifelse(state %in% c("AZ","CO","ID","NM","MT","UT","NV","WY","AK","HI","OR","WA","CA"), "West", ifelse(state %in% c("IN","IL","MI","OH","WI","IA","KS","MN","MO","NE","ND","SD"), "Midwest", ifelse(state %in% c("DE","DC","FL","GA","MD","NC","AL","KT","MS","TN","AR","LA","OK","TX","SC","VA","WV"), "South", "Northeast"))))
+  }else if(region == "West") {
+    mean_by_state <- data %>% filter(region == "West") %>%
+        group_by(state) %>% 
+        summarise(
+          "2007" = mean(unemployment_rate_2007,na.rm = T),
+          "2008" = mean(unemployment_rate_2008,na.rm = T),
+          "2009" = mean(unemployment_rate_2009,na.rm = T),
+          "2010" = mean(unemployment_rate_2010,na.rm = T),
+          "2011" = mean(unemployment_rate_2011,na.rm = T),
+          "2012" = mean(unemployment_rate_2012,na.rm = T),
+          "2013" = mean(unemployment_rate_2013,na.rm = T),
+          "2014" = mean(unemployment_rate_2014,na.rm = T),
+          "2015" = mean(unemployment_rate_2015,na.rm = T),
+          "2016" = mean(unemployment_rate_2016,na.rm = T),
+          "2017" = mean(unemployment_rate_2017,na.rm = T)
+        ) %>% mutate(region = ifelse(state %in% c("AZ","CO","ID","NM","MT","UT","NV","WY","AK","HI","OR","WA","CA"), "West", ifelse(state %in% c("IN","IL","MI","OH","WI","IA","KS","MN","MO","NE","ND","SD"), "Midwest", ifelse(state %in% c("DE","DC","FL","GA","MD","NC","AL","KT","MS","TN","AR","LA","OK","TX","SC","VA","WV"), "South", "Northeast"))))
+  }else{
+    print("Invalid Region")
+  }
+  
+   mbs <- mean_by_state  %>% gather(`2007`,`2008`,`2009`,`2010`,`2011`,`2012`,`2013`,`2014`,`2015`,`2016`,`2017`, key = "year", value = "Mean_Unemployment")
+
+mbs$year <- as.integer(mbs$year)
+
+ggplot(mbs, aes(x=year, y= Mean_Unemployment))+geom_line(aes(col=state)) + facet_wrap(~state, scales = "free")+expand_limits(y=0) + theme(legend.position = "none") + labs("\nYear", y= "Mean Unemployment Rate by State\n", title = paste("Unemployment Rate by State in the", region, "Region of the US: 2007-2017")) + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + scale_x_continuous(labels = function (x) floor(x))
+}
+
+mean_by_states(statejobdata, region = "South")
+
+
+
+
+```
+
+
+```{r}
+us_regions$region <- as.factor(us_regions$region)
+
+southjobdata <- us_regions %>% filter(region == "South") 
+
+northjobdata <- us_regions %>% filter(region == "Northeast")
+
+midwestjobdata <- us_regions %>% filter(region == "Midwest")
+
+westjobdata <- us_regions %>% filter(region == "West")
+
+```
+
+
+```{r}
+mean_by_states <- function(data, region = c("Midwest", "South", "Northeast", "West")) {
+  
+  if(region == "Midwest"){
+  mean_by_state <- data %>% filter(region == "Midwest") %>%
+        group_by(state) %>% 
+        summarise(
+          "2007" = mean(unemployment_rate_2007,na.rm = T),
+          "2008" = mean(unemployment_rate_2008,na.rm = T),
+          "2009" = mean(unemployment_rate_2009,na.rm = T),
+          "2010" = mean(unemployment_rate_2010,na.rm = T),
+          "2011" = mean(unemployment_rate_2011,na.rm = T),
+          "2012" = mean(unemployment_rate_2012,na.rm = T),
+          "2013" = mean(unemployment_rate_2013,na.rm = T),
+          "2014" = mean(unemployment_rate_2014,na.rm = T),
+          "2015" = mean(unemployment_rate_2015,na.rm = T),
+          "2016" = mean(unemployment_rate_2016,na.rm = T),
+          "2017" = mean(unemployment_rate_2017,na.rm = T)
+        ) %>% mutate(region = ifelse(state %in% c("AZ","CO","ID","NM","MT","UT","NV","WY","AK","HI","OR","WA","CA"), "West", ifelse(state %in% c("IN","IL","MI","OH","WI","IA","KS","MN","MO","NE","ND","SD"), "Midwest", ifelse(state %in% c("DE","DC","FL","GA","MD","NC","AL","KT","MS","TN","AR","LA","OK","TX","SC","VA","WV"), "South", "Northeast")))) 
+  }else if(region == "South") {
+    mean_by_state <- data %>% filter(region == "South") %>%
+        group_by(state) %>% 
+        summarise(
+          "2007" = mean(unemployment_rate_2007,na.rm = T),
+          "2008" = mean(unemployment_rate_2008,na.rm = T),
+          "2009" = mean(unemployment_rate_2009,na.rm = T),
+          "2010" = mean(unemployment_rate_2010,na.rm = T),
+          "2011" = mean(unemployment_rate_2011,na.rm = T),
+          "2012" = mean(unemployment_rate_2012,na.rm = T),
+          "2013" = mean(unemployment_rate_2013,na.rm = T),
+          "2014" = mean(unemployment_rate_2014,na.rm = T),
+          "2015" = mean(unemployment_rate_2015,na.rm = T),
+          "2016" = mean(unemployment_rate_2016,na.rm = T),
+          "2017" = mean(unemployment_rate_2017,na.rm = T)
+        ) %>% mutate(region = ifelse(state %in% c("AZ","CO","ID","NM","MT","UT","NV","WY","AK","HI","OR","WA","CA"), "West", ifelse(state %in% c("IN","IL","MI","OH","WI","IA","KS","MN","MO","NE","ND","SD"), "Midwest", ifelse(state %in% c("DE","DC","FL","GA","MD","NC","AL","KT","MS","TN","AR","LA","OK","TX","SC","VA","WV"), "South", "Northeast")))) 
+    
+  }else if(region == "Northeast") {
+    mean_by_state <- data %>% filter(region == "Northeast") %>%
+        group_by(state) %>% 
+        summarise(
+          "2007" = mean(unemployment_rate_2007,na.rm = T),
+          "2008" = mean(unemployment_rate_2008,na.rm = T),
+          "2009" = mean(unemployment_rate_2009,na.rm = T),
+          "2010" = mean(unemployment_rate_2010,na.rm = T),
+          "2011" = mean(unemployment_rate_2011,na.rm = T),
+          "2012" = mean(unemployment_rate_2012,na.rm = T),
+          "2013" = mean(unemployment_rate_2013,na.rm = T),
+          "2014" = mean(unemployment_rate_2014,na.rm = T),
+          "2015" = mean(unemployment_rate_2015,na.rm = T),
+          "2016" = mean(unemployment_rate_2016,na.rm = T),
+          "2017" = mean(unemployment_rate_2017,na.rm = T)
+        ) %>% mutate(region = ifelse(state %in% c("AZ","CO","ID","NM","MT","UT","NV","WY","AK","HI","OR","WA","CA"), "West", ifelse(state %in% c("IN","IL","MI","OH","WI","IA","KS","MN","MO","NE","ND","SD"), "Midwest", ifelse(state %in% c("DE","DC","FL","GA","MD","NC","AL","KT","MS","TN","AR","LA","OK","TX","SC","VA","WV"), "South", "Northeast"))))
+  }else if(region == "West") {
+    mean_by_state <- data %>% filter(region == "West") %>%
+        group_by(state) %>% 
+        summarise(
+          "2007" = mean(unemployment_rate_2007,na.rm = T),
+          "2008" = mean(unemployment_rate_2008,na.rm = T),
+          "2009" = mean(unemployment_rate_2009,na.rm = T),
+          "2010" = mean(unemployment_rate_2010,na.rm = T),
+          "2011" = mean(unemployment_rate_2011,na.rm = T),
+          "2012" = mean(unemployment_rate_2012,na.rm = T),
+          "2013" = mean(unemployment_rate_2013,na.rm = T),
+          "2014" = mean(unemployment_rate_2014,na.rm = T),
+          "2015" = mean(unemployment_rate_2015,na.rm = T),
+          "2016" = mean(unemployment_rate_2016,na.rm = T),
+          "2017" = mean(unemployment_rate_2017,na.rm = T)
+        ) %>% mutate(region = ifelse(state %in% c("AZ","CO","ID","NM","MT","UT","NV","WY","AK","HI","OR","WA","CA"), "West", ifelse(state %in% c("IN","IL","MI","OH","WI","IA","KS","MN","MO","NE","ND","SD"), "Midwest", ifelse(state %in% c("DE","DC","FL","GA","MD","NC","AL","KT","MS","TN","AR","LA","OK","TX","SC","VA","WV"), "South", "Northeast"))))
+  }else{
+    print("Invalid Region")
+  }
+  
+   mbs <- mean_by_state  %>% gather(`2007`,`2008`,`2009`,`2010`,`2011`,`2012`,`2013`,`2014`,`2015`,`2016`,`2017`, key = "year", value = "Mean_Unemployment")
+
+mbs$year <- as.integer(mbs$year)
+
+ggplot(mbs, aes(x=year, y= Mean_Unemployment))+geom_line(aes(col=state)) + facet_wrap(~state, scales = "free")+expand_limits(y=0) + theme(legend.position = "none") + labs("\nYear", y= "Mean Unemployment Rate by State\n", title = paste("Unemployment Rate by State in the", region, "Region of the US: 2007-2017")) + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + scale_x_continuous(labels = function (x) floor(x))
+
+}
+
+```
+
+
+```{r}
+#Function to plot a line graph of states in each region by chose region
+
+mean_by_states <- function(data, region = c("Midwest", "South", "Northeast", "West")) {
+  
+  if(region == region) {mean_by_state <- data %>% filter(region == region) %>%
+        group_by(state) %>% 
+        summarise(
+          "2007" = mean(unemployment_rate_2007,na.rm = T),
+          "2008" = mean(unemployment_rate_2008,na.rm = T),
+          "2009" = mean(unemployment_rate_2009,na.rm = T),
+          "2010" = mean(unemployment_rate_2010,na.rm = T),
+          "2011" = mean(unemployment_rate_2011,na.rm = T),
+          "2012" = mean(unemployment_rate_2012,na.rm = T),
+          "2013" = mean(unemployment_rate_2013,na.rm = T),
+          "2014" = mean(unemployment_rate_2014,na.rm = T),
+          "2015" = mean(unemployment_rate_2015,na.rm = T),
+          "2016" = mean(unemployment_rate_2016,na.rm = T),
+          "2017" = mean(unemployment_rate_2017,na.rm = T)
+        ) %>% mutate(region = ifelse(state %in% c("AZ","CO","ID","NM","MT","UT","NV","WY","AK","HI","OR","WA","CA"), "West", ifelse(state %in% c("IN","IL","MI","OH","WI","IA","KS","MN","MO","NE","ND","SD"), "Midwest", ifelse(state %in% c("DE","DC","FL","GA","MD","NC","AL","KT","MS","TN","AR","LA","OK","TX","SC","VA","WV"), "South", "Northeast"))))
+  }else{
+    print("Improper Input")
+  }
+ 
+   mbs <- mean_by_state  %>% gather(`2007`,`2008`,`2009`,`2010`,`2011`,`2012`,`2013`,`2014`,`2015`,`2016`,`2017`, key = "year", value = "Mean_Unemployment")
+
+mbs$year <- as.integer(mbs$year)
+
+ggplot(mbs, aes(x=year, y= Mean_Unemployment))+geom_line(aes(col=state)) + facet_wrap(~state, scales = "free")+expand_limits(y=0) + theme(legend.position = "none") + labs("\nYear", y= "Mean Unemployment Rate by State\n", title = paste("Unemployment Rate by State in the", region, "Region of the US: 2007-2017")) + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + scale_x_continuous(labels = function (x) floor(x))
+}
+
+mean_by_states(statejobdata, region = "South")
+
+```
+
+Examining unemployment rate each year to see if there are any outliers skewing the data
+
+```{r}
+qplot(data = out1, x = unemployment_rate_2007) + ylab("rate")
+qplot(data = out1, x = unemployment_rate_2008) + ylab("rate")
+qplot(data = out1, x = unemployment_rate_2009) + ylab("rate")
+qplot(data = out1, x = unemployment_rate_2010) + ylab("rate")
+qplot(data = out1, x = unemployment_rate_2011) + ylab("rate")
+qplot(data = out1, x = unemployment_rate_2012) + ylab("rate")
+qplot(data = out1, x = unemployment_rate_2013) + ylab("rate")
+qplot(data = out1, x = unemployment_rate_2014) + ylab("rate")
+qplot(data = out1, x = unemployment_rate_2015) + ylab("rate")
+qplot(data = out1, x = unemployment_rate_2016) + ylab("rate")
+qplot(data = out1, x = unemployment_rate_2017) + ylab("rate")
+
+```
+
